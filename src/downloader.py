@@ -16,9 +16,7 @@ COL_NAMES = [
     "t856",
     "barcode",
     "cost",
-
 ]
-
 
 def get_metadata():
     df = pd.read_csv(URL, usecols=range(1, 12), names=COL_NAMES, skiprows=[0])
