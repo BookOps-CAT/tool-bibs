@@ -81,6 +81,18 @@ def _make_t500(value: str) -> list[Field]:
     return fields
 
 
+def _make_t505(value: str) -> Field:
+    if value.strip():
+        value = _enforce_no_trailing_punctuation(value)
+        return Field(
+            tag="505",
+            indicators=["8", " "],
+            subfields=[Subfield("a", value.capitalize())],
+        )
+    else:
+        return None
+
+
 def _make_t520(value: str) -> Field:
     value = _enforce_trailing_period(value)
     if value:
@@ -113,6 +125,25 @@ def _make_t690(value: str) -> list[Field]:
     return fields
 
 
+def _make_t856(value: str) -> list[Field]:
+    fields = []
+    urls = _values2list(value)
+    for u in urls:
+        if not u.startswith("https://"):
+            raise ValueError
+        fields.append(
+            Field(
+                tag="856",
+                indicators=["4", "2"],
+                subfields=[
+                    Subfield("u", u.strip()),
+                    Subfield("z", "Tool manual"),
+                ],
+            )
+        )
+    return fields
+
+
 def _make_t001(value: int) -> Field:
     pass
 
@@ -121,10 +152,16 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     bib = Record()
     bib.leader = ""
     bib.add_ordered_field()
+
+    # 245
     bib.add_ordered_field(_make_t245(item.title))
+
+    # 246
     alt_titles = _make_t246(item.t246)
     for a in alt_titles:
         bib.add_ordered_field(a)
+
+    # 028
     skus = _make_t028(item.t028)
     for s in skus:
         bib.add_ordered_field(s)

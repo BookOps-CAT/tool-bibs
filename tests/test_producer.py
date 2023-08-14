@@ -8,8 +8,10 @@ from src.producer import (
     _make_t245,
     _make_t246,
     _make_t500,
+    _make_t505,
     _make_t520,
     _make_t690,
+    _make_t856,
     _values2list,
     generate_bib,
 )
@@ -150,6 +152,20 @@ def test_make_t500_multi():
 
 
 @pytest.mark.parametrize("arg", ["", " ", "\t", "\n"])
+def test_make_t505_empty(arg):
+    assert _make_t505(arg) is None
+
+
+@pytest.mark.parametrize(
+    "arg, expectation", [("foo ", "Foo"), (" foo. ", "Foo"), ("Foo.", "Foo")]
+)
+def test_make_t505(arg, expectation):
+    field = _make_t505(arg)
+    assert isinstance(field, Field)
+    assert str(field) == f"=505  8\\$a{expectation}"
+
+
+@pytest.mark.parametrize("arg", ["", " ", "\t", "\n"])
 def test_make_t520_empty_value(arg):
     assert _make_t520(arg) is None
 
@@ -183,3 +199,25 @@ def test_make_t690():
 
     assert str(fields[0]) == "=690  \\7$aFoo.$2bookops"
     assert str(fields[1]) == "=690  \\7$aBar.$2bookops"
+
+
+@pytest.mark.parametrize("arg", ["", " ", "\t", "\n"])
+def test_make_t856_empty_value(arg):
+    assert _make_t856(arg) == []
+
+
+def test_make_t856_not_url():
+    with pytest.raises(ValueError):
+        _make_t856("ftp://example.com")
+
+
+def test_make_t856_multi():
+    fields = _make_t856("https://www.foo.com; https://bar.com")
+    assert isinstance(fields, list)
+    assert len(fields) == 2
+
+    for f in fields:
+        assert isinstance(f, Field)
+
+    assert str(fields[0]) == "=856  42$uhttps://www.foo.com$zTool manual"
+    assert str(fields[1]) == "=856  42$uhttps://bar.com$zTool manual"
