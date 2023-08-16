@@ -1,6 +1,12 @@
+from datetime import datetime, date
+
 from pymarc import Record, Field, Subfield
 
 from src.reader import Item
+
+
+def _date_today():
+    return date.strftime(date.today(), "%y%m%d")
 
 
 def _values2list(value: str) -> list[str]:
@@ -144,15 +150,33 @@ def _make_t856(value: str) -> list[Field]:
     return fields
 
 
-def _make_t001(value: int) -> Field:
+def _make_t001(value: int | str) -> Field:
+    sequenceNo = str(value).zfill(7)
+    return Field(tag="001", data=f"bkl-tll-{sequenceNo}")
+
+
+def _make_t008():
     pass
 
 
 def generate_bib(item: Item, control_no_sequence: int) -> Record:
     bib = Record()
-    bib.leader = ""
-    bib.add_ordered_field()
+    bib.leader = "00000nrm a2200000M  4500"
 
+    # 001
+    controlNoTag = _make_t001(control_no_sequence)
+    bib.add_ordered_field(controlNoTag)
+
+    # 005
+    bib.add_ordered_field(
+        Field(tag="005", data=datetime.strftime(datetime.now(), "%y%m%d%H%M%S.%f"))
+    )
+
+    # 008
+    today = _date_today()
+    bib.add_ordered_field(
+        Field(tag="008", data=f"{today}s20uu    xx                  zxx d")
+    )
     # 245
     bib.add_ordered_field(_make_t245(item.title))
 

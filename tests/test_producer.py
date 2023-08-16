@@ -1,9 +1,13 @@
+from datetime import date
+
 import pytest
 
 from pymarc import Field
 from src.producer import (
     _enforce_trailing_period,
     _enforce_no_trailing_punctuation,
+    _date_today,
+    _make_t001,
     _make_t028,
     _make_t245,
     _make_t246,
@@ -54,6 +58,12 @@ def test_enforce_no_trailing_punctuation(arg, expectation):
     assert _enforce_no_trailing_punctuation(arg) == expectation
 
 
+def test_date_today():
+    today = _date_today()
+    assert isinstance(today, str)
+    assert today == date.strftime(date.today(), "%y%m%d")
+
+
 @pytest.mark.parametrize(
     "arg,expectation",
     [
@@ -69,6 +79,13 @@ def test_enforce_no_trailing_punctuation(arg, expectation):
 )
 def test_values2list(arg, expectation):
     assert _values2list(arg) == expectation
+
+
+@pytest.mark.parametrize("arg", [5, "5"])
+def test_make_t001(arg):
+    field = _make_t001(arg)
+    assert isinstance(field, Field)
+    assert str(field) == "=001  bkl-tll-0000005"
 
 
 @pytest.mark.parametrize("arg", ["", " ", "\n", "\t"])
