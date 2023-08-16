@@ -4,6 +4,7 @@ import pytest
 
 from pymarc import Field
 from src.producer import (
+    _barcodes2list,
     _enforce_trailing_period,
     _enforce_no_trailing_punctuation,
     _date_today,
@@ -16,9 +17,35 @@ from src.producer import (
     _make_t520,
     _make_t690,
     _make_t856,
+    _make_t960,
     _values2list,
     generate_bib,
 )
+
+
+@pytest.mark.parametrize("arg", ["", " ", "\t", "\n"])
+def test_barcodes2list_empty_value(arg):
+    with pytest.raises(ValueError):
+        _barcodes2list(arg)
+
+
+def test_barcodes2list_invalid_prefix():
+    with pytest.raises(ValueError):
+        _barcodes2list("14444000000000")
+
+
+def test_barcodes2list_too_long():
+    with pytest.raises(ValueError):
+        _barcodes2list("344440000000001")
+
+
+def test_barcodes2list():
+    barcodes = _barcodes2list(" 34444000000000; 34444000000001 ;34444000000002 ")
+    assert isinstance(barcodes, list)
+    assert len(barcodes) == 3
+    assert barcodes[0] == "34444000000000"
+    assert barcodes[1] == "34444000000001"
+    assert barcodes[2] == "34444000000002"
 
 
 @pytest.mark.parametrize(
@@ -238,3 +265,16 @@ def test_make_t856_multi():
 
     assert str(fields[0]) == "=856  42$uhttps://www.foo.com$zTool manual"
     assert str(fields[1]) == "=856  42$uhttps://bar.com$zTool manual"
+
+
+def test_make_t960_empty():
+    with pytest.raises(ValueError):
+        _make_t960("", "9.99")
+
+
+def test_make_t960():
+    fields = _make_t960("34444000000000", "9.99")
+    assert isinstance(fields, list)
+    assert len(fields) == 1
+    assert isinstance(fields[0], Field)
+    assert str(fields[0]) == "=960  \\\\$i34444000000000$l41a  $p9.99$q4$t25$ri$sg"
