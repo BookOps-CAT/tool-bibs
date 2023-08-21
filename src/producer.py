@@ -142,9 +142,13 @@ def create_bibs(last_no: str | int):
     n = int(last_no)
     stamp = datetime.strftime(datetime.now(), "%y%m%d%H%M%S.%f")
     fh = f"out/tool-bibs-{stamp}.mrc"
+    row = 0
     for item in reader:
-        print(item.status)
+        row += 1
         if item.status == "for processing":
             n += 1
             bib = generate_bib(item, n)
             save2marc(bib, fh)
+            print(f"Processed row {row}: {item.t245} = {bib['001'].data}")
+        else:
+            print(f"Skipping row {row}")
