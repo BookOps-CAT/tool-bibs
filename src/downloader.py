@@ -20,5 +20,14 @@ COL_NAMES = [
 
 
 def get_metadata():
-    df = pd.read_csv(URL, usecols=range(1, 12), names=COL_NAMES, skiprows=[0])
+    """
+    Uses data types set in the google sheet.
+    All columns data should be plain text.
+    """
+    df = pd.read_csv(
+        URL,
+        usecols=range(1, 12),
+        names=COL_NAMES,
+        skiprows=[0],
+    )
     df.to_csv("out/metadata.csv", index=False)
