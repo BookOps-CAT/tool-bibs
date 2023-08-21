@@ -51,7 +51,8 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
 
     # 246
     alt_titles = _make_t246(item.t246)
-    bib.add_ordered_field(*alt_titles)
+    if alt_titles:
+        bib.add_ordered_field(*alt_titles)
 
     # 300
     bib.add_ordered_field(
@@ -98,10 +99,14 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     bib.add_ordered_field(*notes)
 
     # 505
-    bib.add_ordered_field(_make_t505(item.t505))
+    field = _make_t505(item.t505)
+    if field:
+        bib.add_ordered_field(field)
 
     # 520
-    bib.add_ordered_field(_make_t520(item.t520))
+    field = _make_t520(item.t520)
+    if field:
+        bib.add_ordered_field(field)
 
     # 690
     subjects = _make_t690(item.t690)
@@ -126,4 +131,20 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     return bib
 
 
-# def
+def save2marc(record, fh_out):
+    """Appends MARC21 record to a file"""
+    with open(fh_out, "ab") as out:
+        out.write(record.as_marc())
+
+
+def create_bibs(last_no: str | int):
+    reader = read_data()
+    n = int(last_no)
+    stamp = datetime.strftime(datetime.now(), "%y%m%d%H%M%S.%f")
+    fh = f"out/tool-bibs-{stamp}.mrc"
+    for item in reader:
+        print(item.status)
+        if item.status == "for processing":
+            n += 1
+            bib = generate_bib(item, n)
+            save2marc(bib, fh)
