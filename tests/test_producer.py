@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from pymarc import Field
+from pymarc import Field, Record
 from src.producer import (
     _barcodes2list,
     _enforce_trailing_period,
@@ -278,3 +278,9 @@ def test_make_t960():
     assert len(fields) == 1
     assert isinstance(fields[0], Field)
     assert str(fields[0]) == "=960  \\\\$i34444000000000$l41a  $p9.99$q4$t25$ri$sg"
+
+
+def test_generate_bib(fake_item):
+    bib = generate_bib(fake_item, 1)
+    assert isinstance(bib, Record)
+    assert bib["001"].data == "bkl-tll-0000001"

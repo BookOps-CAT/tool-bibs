@@ -8,7 +8,6 @@ from src.reader import Item
 def _barcodes2list(barcodes: str) -> list[str]:
     barcodes_lst = [b.strip() for b in barcodes.split(";") if b.strip()]
     for b in barcodes_lst:
-        print(b)
         if not b.startswith("34444"):
             raise ValueError("Invalid barcode.")
         if len(b) != 14:
@@ -198,7 +197,7 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
 
     # 001
     controlNoTag = _make_t001(control_no_sequence)
-    bib.add_ordered_field(controlNoTag)
+    bib.add_field(controlNoTag)
 
     # 005
     bib.add_ordered_field(
@@ -213,8 +212,7 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
 
     # 028
     skus = _make_t028(item.t028)
-    for s in skus:
-        bib.add_ordered_field(s)
+    bib.add_ordered_field(*skus)
 
     # 099
     bib.add_ordered_field(
@@ -222,12 +220,16 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     )
 
     # 245
-    bib.add_ordered_field(_make_t245(item.title))
+    bib.add_ordered_field(_make_t245(item.t245))
 
     # 246
     alt_titles = _make_t246(item.t246)
-    for a in alt_titles:
-        bib.add_ordered_field(a)
+    bib.add_ordered_field(*alt_titles)
+
+    # 300
+    bib.add_ordered_field(
+        Field(tag="300", indicators=[" ", " "], subfields=[Subfield("a", "1 tool")])
+    )
 
     # RDA 3xx tags
     bib.add_ordered_field(
@@ -265,9 +267,8 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     )
 
     # 500
-    notes = _make_t245(item.t500)
-    for n in notes:
-        bib.add_ordered_field(n)
+    notes = _make_t500(item.t500)
+    bib.add_ordered_field(*notes)
 
     # 505
     bib.add_ordered_field(_make_t505(item.t505))
@@ -277,10 +278,22 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
 
     # 690
     subjects = _make_t690(item.t690)
-    for s in subjects:
-        bib.add_ordered_field(s)
+    bib.add_ordered_field(*subjects)
 
     # 856
     urls = _make_t856(item.t856)
-    for u in urls:
-        bib.add_ordered_field(u)
+    bib.add_ordered_field(*urls)
+
+    # 960
+    items = _make_t960(
+        item.barcode,
+        item.cost,
+    )
+    bib.add_ordered_field(*items)
+
+    # 949 command line
+    bib.add_ordered_field(
+        Field(tag="949", indicators=[" ", " "], subfields=[Subfield("a", "*b2=o;")])
+    )
+
+    return bib
