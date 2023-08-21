@@ -4,7 +4,7 @@ from pymarc import Field, Subfield
 
 
 def _barcodes2list(barcodes: str) -> list[str]:
-    barcodes_lst = [b.strip() for b in barcodes.split(";") if b.strip()]
+    barcodes_lst = [str(int(b.strip())) for b in barcodes.split(";") if b.strip()]
     for b in barcodes_lst:
         if not b.startswith("34444"):
             raise ValueError("Invalid barcode.")
