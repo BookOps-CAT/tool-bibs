@@ -1,4 +1,5 @@
 from datetime import datetime, date
+import warnings
 
 from pymarc import Record, Field, Subfield
 
@@ -8,7 +9,6 @@ from src.reader import Item
 def _barcodes2list(barcodes: str) -> list[str]:
     barcodes_lst = [b.strip() for b in barcodes.split(";") if b.strip()]
     for b in barcodes_lst:
-        print(b)
         if not b.startswith("34444"):
             raise ValueError("Invalid barcode.")
         if len(b) != 14:
@@ -50,6 +50,16 @@ def _enforce_no_trailing_punctuation(value: str) -> str:
             return value
     else:
         return value
+
+
+def _get_item_type_code(loan_restriction: str) -> str:
+    if loan_restriction.lower() == "yes":
+        return "58"
+    elif loan_restriction.lower() == "no":
+        return "59"
+    else:
+        warnings.warn("Invalid loan restrition value")
+        return "59"
 
 
 def _make_t001(value: int | str) -> Field:
@@ -170,9 +180,14 @@ def _make_t856(value: str) -> list[Field]:
     return fields
 
 
-def _make_t960(barcodes: str, cost: str, status: str = "g") -> list[Field]:
+def _make_t960(
+    barcodes: str, cost: str, loan_restriction: str = "NO", status: str = "g"
+) -> list[Field]:
     fields = []
     barcodes = _barcodes2list(barcodes)
+
+    item_type_code = _get_item_type_code(loan_restriction)
+
     for barcode in barcodes:
         fields.append(
             Field(
@@ -180,16 +195,20 @@ def _make_t960(barcodes: str, cost: str, status: str = "g") -> list[Field]:
                 indicators=[" ", " "],
                 subfields=[
                     Subfield("i", barcode),
-                    Subfield("l", "41a  "),
+                    Subfield("l", "41atl"),
                     Subfield("p", cost),
                     Subfield("q", "4"),  # stat code: 4 - undefined
-                    Subfield("t", "25"),  # item type: 25 - realia
+                    Subfield("t", item_type_code),  # item type: 25 - realia
                     Subfield("r", "i"),  # item format: i - adult other
                     Subfield("s", status),
                 ],
             )
         )
     return fields
+
+
+def _make_t949():
+    return Field(tag="949", indicators=[" ", " "], subfields=[Subfield("a", "*b2=r;")])
 
 
 def generate_bib(item: Item, control_no_sequence: int) -> Record:
@@ -222,7 +241,8 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     )
 
     # 245
-    bib.add_ordered_field(_make_t245(item.title))
+    title_field = _make_t245(item.t245)
+    bib.add_ordered_field(title_field)
 
     # 246
     alt_titles = _make_t246(item.t246)
@@ -265,15 +285,19 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     )
 
     # 500
-    notes = _make_t245(item.t500)
-    for n in notes:
+    notes_general = _make_t500(item.t500)
+    for n in notes_general:
         bib.add_ordered_field(n)
 
     # 505
-    bib.add_ordered_field(_make_t505(item.t505))
+    note_content = _make_t505(item.t505)
+    if note_content:
+        bib.add_ordered_field(_make_t505(item.t505))
 
     # 520
-    bib.add_ordered_field(_make_t520(item.t520))
+    summary = _make_t520(item.t520)
+    if summary:
+        bib.add_ordered_field(_make_t520(item.t520))
 
     # 690
     subjects = _make_t690(item.t690)
@@ -284,3 +308,22 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     urls = _make_t856(item.t856)
     for u in urls:
         bib.add_ordered_field(u)
+
+    # item records 960s
+    items = _make_t960(item.barcode, item.cost, item.loan_restriction)
+    if len(items) == 0:
+        raise ValueError(f"Bib without items: {item.t245}")
+    for i in items:
+        bib.add_ordered_field(i)
+
+    # command tag 949
+    command_tag = _make_t949()
+    bib.add_ordered_field(command_tag)
+
+    return bib
+
+
+def save2marc(bib: Record, fh_out: str) -> None:
+    """Appends MARC21 record to a file"""
+    with open(fh_out, "ab") as out:
+        out.write(bib.as_marc())

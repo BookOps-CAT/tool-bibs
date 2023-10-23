@@ -2,12 +2,13 @@ from datetime import date
 
 import pytest
 
-from pymarc import Field
+from pymarc import Field, Record
 from src.producer import (
     _barcodes2list,
     _enforce_trailing_period,
     _enforce_no_trailing_punctuation,
     _date_today,
+    _get_item_type_code,
     _make_t001,
     _make_t028,
     _make_t245,
@@ -18,9 +19,12 @@ from src.producer import (
     _make_t690,
     _make_t856,
     _make_t960,
+    _make_t949,
     _values2list,
     generate_bib,
 )
+
+from src.reader import Item
 
 
 @pytest.mark.parametrize("arg", ["", " ", "\t", "\n"])
@@ -46,6 +50,29 @@ def test_barcodes2list():
     assert barcodes[0] == "34444000000000"
     assert barcodes[1] == "34444000000001"
     assert barcodes[2] == "34444000000002"
+
+
+@pytest.mark.parametrize(
+    "arg,expectation",
+    [
+        ("YES", "58"),
+        ("yes", "58"),
+        ("NO", "59"),
+        ("no", "59"),
+    ],
+)
+def test_get_item_type_code(arg, expectation):
+    assert _get_item_type_code(arg) == expectation
+
+
+@pytest.mark.parametrize("arg", ["foo", ""])
+def test_get_item_type_code_warnings(arg):
+    with pytest.warns(Warning) as warn_msg:
+        result = _get_item_type_code(arg)
+        assert result == "59"
+
+        if not warn_msg:
+            pytest.fail("Expected a warning for invalid loan restriction value")
 
 
 @pytest.mark.parametrize(
@@ -273,8 +300,57 @@ def test_make_t960_empty():
 
 
 def test_make_t960():
-    fields = _make_t960("34444000000000", "9.99")
+    fields = _make_t960("34444000000000", "9.99", "YES")
     assert isinstance(fields, list)
     assert len(fields) == 1
     assert isinstance(fields[0], Field)
-    assert str(fields[0]) == "=960  \\\\$i34444000000000$l41a  $p9.99$q4$t25$ri$sg"
+    assert str(fields[0]) == "=960  \\\\$i34444000000000$l41atl$p9.99$q4$t58$ri$sg"
+
+
+def test_make_t949():
+    result = _make_t949()
+    assert isinstance(result, Field)
+    assert str(result) == "=949  \\\\$a*b2=r;"
+
+
+def test_generate_bib():
+    item = Item(
+        status="for processing",
+        t245="Foo",
+        t246="",
+        t028="12345",
+        t520="spam spam spam",
+        t690="Power tools,Garden tools",
+        t500="",
+        t505="bar, shrubbery",
+        t856="https://example.com",
+        barcode="34444000000000;34444000000001",
+        cost="9.99",
+        loan_restriction="NO",
+    )
+    bib = generate_bib(item, 24)
+
+    assert isinstance(bib, Record)
+    assert bib["001"].data == "bkl-tll-0000024"
+    assert "005" in bib
+    assert (
+        bib["008"].data
+        == f"{date.strftime(date.today(), '%y%m%d')}s20uu    xx                  zxx d"
+    )
+    assert "028" in bib
+    assert str(bib["099"]) == "=099  \\\\$aTOOL"
+    assert "245" in bib
+    assert "246" not in bib
+    assert str(bib["336"]) == "=336  \\\\$athree-dimensional form$btdf$2rdacontent"
+    assert str(bib["337"]) == "=337  \\\\$aunmediated$bn$2rdamedia"
+    assert str(bib["338"]) == "=338  \\\\$aobject$bnr$2rdacarrier"
+    assert "500" not in bib
+    assert "505" in bib
+    assert "520" in bib
+    subjects = bib.get_fields("690")
+    assert len(subjects) == 2
+    assert "856" in bib
+    items = bib.get_fields("960")
+    assert len(items) == 2
+    assert str(items[1]) == "=960  \\\\$i34444000000001$l41atl$p9.99$q4$t59$ri$sg"
+    assert "949" in bib
