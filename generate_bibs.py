@@ -17,7 +17,7 @@ def run(start_sequence: int) -> None:
     # loop over metadata, create bibs, and serialize to MARC21
     for item in read_data():
         if item.status == "for processing":
-            bib = generate_bib(item, start_sequence)
+            bib = generate_bib(item, n)
             save2marc(bib, out)
             n += 1
 
