@@ -18,6 +18,8 @@ This project requires Python 3.10 version.
 2. Note the last control # in the sheet
 3. Activate project's virtual environment
 4. Run the following Python command in the CLI (example, the next control # sequence is 24)
-`python generate_bibs.py 24
+
+`python generate_bibs.py 24`
+
 5. Mark processed rows in the column "status" as "completed"
 6. Add to the sheet new control #s, loaded dates, and Sierra bib #s
