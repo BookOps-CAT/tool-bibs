@@ -252,6 +252,11 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     for a in alt_titles:
         bib.add_ordered_field(a)
 
+    # 300 field
+    bib.add_ordered_field(
+        Field(tag="300", indicators=[" ", " "], subfields=[Subfield("a", "1 tool")])
+    )
+
     # RDA 3xx tags
     bib.add_ordered_field(
         Field(

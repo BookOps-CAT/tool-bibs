@@ -342,6 +342,7 @@ def test_generate_bib():
     assert str(bib["099"]) == "=099  \\\\$aTOOL"
     assert "245" in bib
     assert "246" not in bib
+    assert str(bib["300"]) == "=300  \\\\$a1 tool"
     assert str(bib["336"]) == "=336  \\\\$athree-dimensional form$btdf$2rdacontent"
     assert str(bib["337"]) == "=337  \\\\$aunmediated$bn$2rdamedia"
     assert str(bib["338"]) == "=338  \\\\$aobject$bnr$2rdacarrier"
