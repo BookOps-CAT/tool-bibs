@@ -332,6 +332,7 @@ def test_generate_bib():
 
     assert isinstance(bib, Record)
     assert bib["001"].data == "bkl-tll-0000024"
+    assert bib["003"].data == "NBPu"
     assert "005" in bib
     assert (
         bib["008"].data

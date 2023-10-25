@@ -219,6 +219,9 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     controlNoTag = _make_t001(control_no_sequence)
     bib.add_ordered_field(controlNoTag)
 
+    # 003
+    bib.add_ordered_field(Field(tag="003", data="NBPu"))
+
     # 005
     bib.add_ordered_field(
         Field(tag="005", data=datetime.strftime(datetime.now(), "%y%m%d%H%M%S.%f"))
@@ -310,9 +313,11 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
         bib.add_ordered_field(u)
 
     # item records 960s
-    items = _make_t960(item.barcode, item.cost, item.loan_restriction)
-    if len(items) == 0:
+    try:
+        items = _make_t960(item.barcode, item.cost, item.loan_restriction)
+    except ValueError:
         raise ValueError(f"Bib without items: {item.t245}")
+
     for i in items:
         bib.add_ordered_field(i)
 
