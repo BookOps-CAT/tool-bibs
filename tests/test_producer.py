@@ -321,7 +321,7 @@ def test_generate_bib():
         t028="12345",
         t520="spam spam spam",
         t690="Power tools,Garden tools",
-        t500="",
+        t500="some note",
         t505="bar, shrubbery",
         t856="https://example.com",
         barcode="34444000000000;34444000000001",
@@ -345,7 +345,9 @@ def test_generate_bib():
     assert str(bib["336"]) == "=336  \\\\$athree-dimensional form$btdf$2rdacontent"
     assert str(bib["337"]) == "=337  \\\\$aunmediated$bn$2rdamedia"
     assert str(bib["338"]) == "=338  \\\\$aobject$bnr$2rdacarrier"
-    assert "500" not in bib
+    notes = bib.get_fields("500")
+    assert len(notes) == 1
+    assert str(notes[0]) == "=500  \\\\$aSome note"
     assert "505" in bib
     assert "520" in bib
     subjects = bib.get_fields("690")
@@ -355,3 +357,24 @@ def test_generate_bib():
     assert len(items) == 2
     assert str(items[1]) == "=960  \\\\$i34444000000001$l41atl$p9.99$q4$t59$ri$sg"
     assert "949" in bib
+
+
+def test_generate_bib_without_barcodes():
+    item = Item(
+        status="for processing",
+        t245="Foo",
+        t246="",
+        t028="12345",
+        t520="spam spam spam",
+        t690="Power tools,Garden tools",
+        t500="some note",
+        t505="bar, shrubbery",
+        t856="https://example.com",
+        barcode="",
+        cost="9.99",
+        loan_restriction="NO",
+    )
+
+    with pytest.raises(ValueError) as exc:
+        generate_bib(item, 24)
+    assert str(exc.value) == "Bib without items: Foo"
