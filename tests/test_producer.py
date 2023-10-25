@@ -5,6 +5,7 @@ import pytest
 from pymarc import Field, Record
 from src.producer import (
     _barcodes2list,
+    _convert_price,
     _enforce_trailing_period,
     _enforce_no_trailing_punctuation,
     _date_today,
@@ -50,6 +51,14 @@ def test_barcodes2list():
     assert barcodes[0] == "34444000000000"
     assert barcodes[1] == "34444000000001"
     assert barcodes[2] == "34444000000002"
+
+
+@pytest.mark.parametrize(
+    "arg,expectation",
+    [("9", "9.00"), ("149.99", "149.99"), ("7.0", "7.00"), ("0.9", "0.90")],
+)
+def test_convert_price(arg, expectation):
+    assert _convert_price(arg) == expectation
 
 
 @pytest.mark.parametrize(
@@ -305,6 +314,10 @@ def test_make_t960():
     assert len(fields) == 1
     assert isinstance(fields[0], Field)
     assert str(fields[0]) == "=960  \\\\$i34444000000000$l41atl$p9.99$q4$t58$ri$sg"
+
+
+# def test_make_t960_price_formatting():
+# fields = _make_t960("34444000000000", , "YES")
 
 
 def test_make_t949():

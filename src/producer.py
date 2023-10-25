@@ -20,6 +20,11 @@ def _barcodes2list(barcodes: str) -> list[str]:
     return barcodes_lst
 
 
+def _convert_price(value: str) -> str:
+    value_as_float = float(value)
+    return f"{value_as_float:.2f}"
+
+
 def _date_today():
     return date.strftime(date.today(), "%y%m%d")
 
@@ -187,6 +192,7 @@ def _make_t960(
     barcodes_lst = _barcodes2list(barcodes)
 
     item_type_code = _get_item_type_code(loan_restriction)
+    formatted_cost = _convert_price(cost)
 
     for barcode in barcodes_lst:
         fields.append(
@@ -196,7 +202,7 @@ def _make_t960(
                 subfields=[
                     Subfield("i", barcode),
                     Subfield("l", "41atl"),
-                    Subfield("p", cost),
+                    Subfield("p", formatted_cost),
                     Subfield("q", "4"),  # stat code: 4 - undefined
                     Subfield("t", item_type_code),  # item type: 25 - realia
                     Subfield("r", "i"),  # item format: i - adult other
@@ -230,7 +236,7 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     # 008
     today = _date_today()
     bib.add_ordered_field(
-        Field(tag="008", data=f"{today}s20uu    xx                  zxx d")
+        Field(tag="008", data=f"{today}s20uu    xx                ||zxx d")
     )
 
     # 028
