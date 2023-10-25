@@ -1,9 +1,9 @@
 from datetime import datetime, date
 import warnings
 
-from pymarc import Record, Field, Subfield
+from pymarc import Record, Field, Subfield  # type: ignore
 
-from src.reader import Item
+from src.reader import Item  # type: ignore
 
 
 def _barcodes2list(barcodes: str) -> list[str]:
@@ -184,11 +184,11 @@ def _make_t960(
     barcodes: str, cost: str, loan_restriction: str = "NO", status: str = "g"
 ) -> list[Field]:
     fields = []
-    barcodes = _barcodes2list(barcodes)
+    barcodes_lst = _barcodes2list(barcodes)
 
     item_type_code = _get_item_type_code(loan_restriction)
 
-    for barcode in barcodes:
+    for barcode in barcodes_lst:
         fields.append(
             Field(
                 tag="960",
