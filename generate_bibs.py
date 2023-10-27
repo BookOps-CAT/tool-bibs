@@ -3,6 +3,7 @@ import sys
 from src.downloader import get_metadata
 from src.producer import save2marc, generate_bib, _date_today
 from src.reader import read_data
+from src.data_checker import verify_barcodes
 
 
 def run(start_sequence: int) -> None:
@@ -21,6 +22,17 @@ def run(start_sequence: int) -> None:
             save2marc(bib, out)
             n += 1
 
+    print("Completed...")
+    print(f"Created {n-int(start_sequence)} bibs.")
+
+
+def verify_data():
+    get_metadata()
+    verify_barcodes()
+
 
 if __name__ == "__main__":
-    run(sys.argv[1])
+    if sys.argv[1] == "create":
+        run(sys.argv[2])
+    elif sys.argv[1] == "verify":
+        verify_data()
