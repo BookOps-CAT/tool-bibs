@@ -166,7 +166,7 @@ def _make_t690(value: str) -> list[Field]:
     return fields
 
 
-def _make_t856(value: str) -> list[Field]:
+def _make_t856(value: str, label: str) -> list[Field]:
     fields = []
     urls = _values2list(value)
     for u in urls:
@@ -178,7 +178,7 @@ def _make_t856(value: str) -> list[Field]:
                 indicators=["4", "2"],
                 subfields=[
                     Subfield("u", u.strip()),
-                    Subfield("z", "Tool manual"),
+                    Subfield("z", label),
                 ],
             )
         )
@@ -318,10 +318,15 @@ def generate_bib(item: Item, control_no_sequence: int) -> Record:
     for s in subjects:
         bib.add_ordered_field(s)
 
-    # 856
-    urls = _make_t856(item.t856)
+    # 856 with manual url
+    urls = _make_t856(item.t856, "Tool manual")
     for u in urls:
         bib.add_ordered_field(u)
+
+    program_url_tag = _make_t856(
+        "https://www.bklynlibrary.org/tool-library", "Tool library webpage"
+    )
+    bib.add_ordered_field(program_url_tag[0])
 
     # item records 960s
     try:

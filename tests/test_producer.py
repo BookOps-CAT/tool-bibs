@@ -283,24 +283,24 @@ def test_make_t690():
 
 @pytest.mark.parametrize("arg", ["", " ", "\t", "\n"])
 def test_make_t856_empty_value(arg):
-    assert _make_t856(arg) == []
+    assert _make_t856(arg, "foo") == []
 
 
 def test_make_t856_not_url():
     with pytest.raises(ValueError):
-        _make_t856("ftp://example.com")
+        _make_t856("ftp://example.com", "foo")
 
 
 def test_make_t856_multi():
-    fields = _make_t856("https://www.foo.com; https://bar.com")
+    fields = _make_t856("https://www.foo.com; https://bar.com", "foo")
     assert isinstance(fields, list)
     assert len(fields) == 2
 
     for f in fields:
         assert isinstance(f, Field)
 
-    assert str(fields[0]) == "=856  42$uhttps://www.foo.com$zTool manual"
-    assert str(fields[1]) == "=856  42$uhttps://bar.com$zTool manual"
+    assert str(fields[0]) == "=856  42$uhttps://www.foo.com$zfoo"
+    assert str(fields[1]) == "=856  42$uhttps://bar.com$zfoo"
 
 
 def test_make_t960_empty():
@@ -349,7 +349,7 @@ def test_generate_bib():
     assert "005" in bib
     assert (
         bib["008"].data
-        == f"{date.strftime(date.today(), '%y%m%d')}s20uu    xx                  zxx d"
+        == f"{date.strftime(date.today(), '%y%m%d')}s20uu    xx                ||zxx d"
     )
     assert "028" in bib
     assert str(bib["099"]) == "=099  \\\\$aTOOL"
@@ -366,7 +366,13 @@ def test_generate_bib():
     assert "520" in bib
     subjects = bib.get_fields("690")
     assert len(subjects) == 2
-    assert "856" in bib
+    urls = bib.get_fields("856")
+    assert len(urls) == 2
+    assert str(urls[0]) == "=856  42$uhttps://example.com$zTool manual"
+    assert (
+        str(urls[1])
+        == "=856  42$uhttps://www.bklynlibrary.org/tool-library$zTool library webpage"
+    )
     items = bib.get_fields("960")
     assert len(items) == 2
     assert str(items[1]) == "=960  \\\\$i34444000000001$l41atl$p9.99$q4$t59$ri$sg"
