@@ -277,8 +277,8 @@ def test_make_t690():
     for f in fields:
         assert isinstance(f, Field)
 
-    assert str(fields[0]) == "=690  \\7$aFoo.$2bookops"
-    assert str(fields[1]) == "=690  \\7$aBar.$2bookops"
+    assert str(fields[0]) == "=690  \\4$aFoo."
+    assert str(fields[1]) == "=690  \\4$aBar."
 
 
 @pytest.mark.parametrize("arg", ["", " ", "\t", "\n"])

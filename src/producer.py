@@ -157,8 +157,8 @@ def _make_t690(value: str) -> list[Field]:
         fields.append(
             Field(
                 tag="690",
-                indicators=[" ", "7"],
-                subfields=[Subfield("a", f"{s}."), Subfield("2", "bookops")],
+                indicators=[" ", "4"],
+                subfields=[Subfield("a", f"{s}.")],
             )
         )
     if not fields:
