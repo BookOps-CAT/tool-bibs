@@ -13,9 +13,9 @@ This project requires Python 3.10 version.
 3. Install dependencies
 	+ `pip install -r requirements.txt`
 
-## Validating submitted data
-To validate submitted data does not inlcude any duplicate barcodes run the following command:
-`python tool_bibs.py validate`
+## Verifying submitted data
+To verify submitted data does not inlcude any duplicate barcodes run the following command:
+`python tool_bibs.py verify`
 
 This command will print out to the terminal any instances of barcodes and associated tool names that were identified as duplicates.
 
