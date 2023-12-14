@@ -6,7 +6,7 @@ from src.reader import read_data
 from src.data_checker import verify_barcodes
 
 
-def run(start_sequence: int) -> None:
+def run(start_sequence: str) -> None:
     # refresh local copy of metadata
     get_metadata()
     n = int(start_sequence)
@@ -32,9 +32,18 @@ def verify_data():
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == "create":
-        run(sys.argv[2])
-    elif sys.argv[1] == "verify":
-        verify_data()
-    else:
-        print("Invalid command. Use 'create' or 'verify' arguments.")
+    try:
+        if len(sys.argv) > 3:
+            print("Invalid command. Too many arguments.")
+        elif sys.argv[1] == "create":
+            run(sys.argv[2])
+        elif sys.argv[1] == "verify":
+            verify_data()
+        else:
+            print("Invalid command. Use 'create' or 'verify' argument.")
+    except IndexError:
+        print("Invalid command. Missing 'create' or 'verify' argument.")
+    except ValueError:
+        print("Invalid call #. Provide a number after 'create' argument.")
+    except Exception as e:
+        print(f"A error occurred: {e}.")
