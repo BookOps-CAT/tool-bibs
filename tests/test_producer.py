@@ -1,14 +1,14 @@
 from datetime import date
 
 import pytest
-
 from pymarc import Field, Record
+
 from src.producer import (
     _barcodes2list,
     _convert_price,
-    _enforce_trailing_period,
-    _enforce_no_trailing_punctuation,
     _date_today,
+    _enforce_no_trailing_punctuation,
+    _enforce_trailing_period,
     _get_item_type_code,
     _make_t001,
     _make_t028,
@@ -19,12 +19,11 @@ from src.producer import (
     _make_t520,
     _make_t690,
     _make_t856,
-    _make_t960,
     _make_t949,
+    _make_t960,
     _values2list,
     generate_bib,
 )
-
 from src.reader import Item
 
 
@@ -313,7 +312,7 @@ def test_make_t960():
     assert isinstance(fields, list)
     assert len(fields) == 1
     assert isinstance(fields[0], Field)
-    assert str(fields[0]) == "=960  \\\\$i34444000000000$l41atl$p9.99$q4$t58$ri$sg"
+    assert str(fields[0]) == "=960  \\\\$i34444000000000$l41tls$p9.99$q4$t58$ri$sg"
 
 
 # def test_make_t960_price_formatting():
@@ -375,7 +374,7 @@ def test_generate_bib():
     )
     items = bib.get_fields("960")
     assert len(items) == 2
-    assert str(items[1]) == "=960  \\\\$i34444000000001$l41atl$p9.99$q4$t59$ri$sg"
+    assert str(items[1]) == "=960  \\\\$i34444000000001$l41tls$p9.99$q4$t59$ri$sg"
     assert "949" in bib
 
 

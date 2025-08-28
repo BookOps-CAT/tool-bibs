@@ -1,7 +1,7 @@
-from datetime import datetime, date
 import warnings
+from datetime import date, datetime
 
-from pymarc import Record, Field, Subfield  # type: ignore
+from pymarc import Field, Record, Subfield  # type: ignore
 
 from src.reader import Item  # type: ignore
 
@@ -201,7 +201,7 @@ def _make_t960(
                 indicators=[" ", " "],
                 subfields=[
                     Subfield("i", barcode),
-                    Subfield("l", "41atl"),
+                    Subfield("l", "41tls"),
                     Subfield("p", formatted_cost),
                     Subfield("q", "4"),  # stat code: 4 - undefined
                     Subfield("t", item_type_code),  # item type: 25 - realia
